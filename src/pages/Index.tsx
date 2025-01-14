@@ -4,10 +4,11 @@ import CategoryFilter from "@/components/CategoryFilter";
 import ToolCard from "@/components/ToolCard";
 import { tools as initialTools } from "@/data/tools";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Plus, Shield } from "lucide-react";
 import { useTheme } from "next-themes";
 import { AddToolDialog } from "@/components/AddToolDialog";
 import { Tool } from "@/data/tools";
+import { AdminDialog } from "@/components/AdminDialog";
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -18,6 +19,7 @@ const Index = () => {
     const savedTools = localStorage.getItem('tools');
     return savedTools ? JSON.parse(savedTools) : initialTools;
   });
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const filteredTools = tools.filter((tool) => {
     const matchesSearch = tool.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -44,9 +46,46 @@ const Index = () => {
   return (
     <div className="container py-8 dark:bg-gray-900 min-h-screen">
       <div className="flex justify-between items-center mb-8">
-        <img src="/logo_plugilo_black.svg" alt="Logo" className="h-12 w-auto" />
+        <div className="flex items-center gap-4">
+          <img src="/og-image.svg" alt="Logo" className="h-12 w-auto" />
+          <h1 className="text-2xl font-bold dark:text-white">AI TOOLS DIRECTORY</h1>
+        </div>
         <div className="flex gap-2">
-          <AddToolDialog onSave={handleAddTool} />
+          {isAdmin && (
+            <AdminDialog tools={tools} onUpdateTools={setTools}>
+              <Button
+                variant="outline"
+                size="default"
+                className={`flex items-center gap-2 bg-red-100 hover:bg-red-200 border-red-500 text-red-700`}
+              >
+                <Shield className="h-4 w-4" />
+                ADMIN MODE
+              </Button>
+            </AdminDialog>
+          )}
+          {!isAdmin && (
+            <Button
+              variant="outline"
+              size="default"
+              onClick={() => setIsAdmin(true)}
+              className="flex items-center gap-2"
+            >
+              <Shield className="h-4 w-4" />
+              ADMIN
+            </Button>
+          )}
+
+          <AddToolDialog onSave={handleAddTool}>
+            <Button
+              variant="default"
+              size="default"
+              className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Add Tool
+            </Button>
+          </AddToolDialog>
+
           <Button
             variant="ghost"
             size="icon"

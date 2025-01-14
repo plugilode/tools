@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface AddToolDialogProps {
   onSave: (tool: Partial<Tool>) => void;
+  children?: React.ReactNode;
 }
 
-export function AddToolDialog({ onSave }: AddToolDialogProps) {
+export function AddToolDialog({ onSave, children }: AddToolDialogProps) {
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -48,13 +49,11 @@ export function AddToolDialog({ onSave }: AddToolDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="dark:text-gray-300"
-        >
-          <Plus className="h-5 w-5" />
-        </Button>
+        {children || (
+          <Button variant="ghost" size="icon" className="dark:text-gray-300">
+            <Plus className="h-5 w-5" />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
