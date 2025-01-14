@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SearchBar from "@/components/SearchBar";
 import CategoryFilter from "@/components/CategoryFilter";
 import ToolCard from "@/components/ToolCard";
+import Pagination from "@/components/Pagination";
 import { tools as initialTools } from "@/data/tools";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, Plus, Shield } from "lucide-react";
@@ -10,14 +11,20 @@ import { AddToolDialog } from "@/components/AddToolDialog";
 import { Tool } from "@/data/tools";
 import { AdminDialog } from "@/components/AdminDialog";
 
+const ITEMS_PER_PAGE = 20;
+
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const { theme, setTheme } = useTheme();
   const [tools, setTools] = useState<Tool[]>(() => {
-    // Try to load tools from localStorage
     const savedTools = localStorage.getItem('tools');
-    return savedTools ? JSON.parse(savedTools) : initialTools;
+    if (savedTools) {
+      return JSON.parse(savedTools);
+    }
+    localStorage.setItem('tools', JSON.stringify(initialTools));
+    return initialTools;
   });
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -31,17 +38,32 @@ const Index = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredTools.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  
   const featuredTools = filteredTools.filter(tool => tool.featured);
-  const regularTools = filteredTools.filter(tool => !tool.featured);
+  const regularTools = filteredTools
+    .filter(tool => !tool.featured)
+    .slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleAddTool = (newTool: Partial<Tool>) => {
     setTools(prevTools => {
       const updatedTools = [...prevTools, newTool as Tool];
-      // Save to localStorage
       localStorage.setItem('tools', JSON.stringify(updatedTools));
       return updatedTools;
     });
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
 
   return (
     <div className="container py-8 dark:bg-gray-900 min-h-screen">
@@ -128,10 +150,16 @@ const Index = () => {
             </div>
           </div>
           
-          {filteredTools.length === 0 && (
+          {filteredTools.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 dark:text-gray-400">No tools found matching your criteria.</p>
             </div>
+          ) : filteredTools.length > ITEMS_PER_PAGE && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           )}
         </main>
       </div>
